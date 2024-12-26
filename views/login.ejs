@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <title>Sign Up</title>
+  </head>
+  <body>
+    <div class="content">
+      <div class="signup">
+        <h1 class="title">Login</h1>
+        <div class="errors">
+          <% if (locals.errors) { %>
+          <p>Wrong username or password</p>
+          <% } %>
+        </div>
+        <form action="/login" method="POST" class="login-form">
+          <label for="username">Username:</label>
+          <input type="text" name="username" id="username" required />
+          <label for="password">Password:</label>
+          <input type="password" name="password" id="password" required />
+          <div class="buttons-container">
+            <button type="submit">Login</button>
+          </div>
+        </form>
+        <p>Don't have an account? <a href="/login">Sign Up</a></p>
+      </div>
+    </div>
+  </body>
+</html>

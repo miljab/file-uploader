@@ -69,14 +69,16 @@ body {
   gap: 20px;
 }
 
-.signup-form {
+.signup-form,
+.login-form {
   display: flex;
   flex-direction: column;
   align-items: start;
   width: 80%;
 }
 
-.signup-form input {
+.signup-form input,
+.login-form input {
   padding: 10px;
   border: none;
   border-radius: 8px;
@@ -84,7 +86,8 @@ body {
   margin-bottom: 15px;
 }
 
-.signup-form label {
+.signup-form label,
+.login-form label {
   text-transform: uppercase;
   letter-spacing: 1px;
   font-size: 0.8rem;

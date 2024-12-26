@@ -1,6 +1,14 @@
 const { body, validationResult } = require("express-validator");
 const bcrypt = require("bcrypt");
-const { prisma } = require("../prisma/client");
+const prisma = require("../prisma/client");
+
+function isAuth(req, res, next) {
+  if (req.isAuthenticated()) {
+    next();
+  } else {
+    res.redirect("/");
+  }
+}
 
 const registerValidation = [
   body("username")
@@ -51,3 +59,8 @@ registerPost = [
     }
   },
 ];
+
+module.exports = {
+  isAuth,
+  registerPost,
+};
