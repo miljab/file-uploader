@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  folders   Folder[] @relation("FolderOwner")
+}
+
+model Folder {
+  id        Int           @id @default(autoincrement())
+  name      String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  owner     User          @relation("FolderOwner", fields: [ownerId], references: [id])
+  ownerId   Int
+  parent    Folder?       @relation("FolderParent", fields: [parentId], references: [id])
+  parentId  Int
+  children  Folder[]      @relation("FolderParent")
+  files     File[]
+  share     ShareFolder[]
+}
+
+model File {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  folder    Folder   @relation(fields: [folderId], references: [id])
+  folderId  Int
+  url       String
+}
+
+model ShareFolder {
+  id        Int      @id @default(autoincrement())
+  folder    Folder   @relation(fields: [folderId], references: [id])
+  folderId  Int
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  url       String
+}
+
+model Session {
+  id        String   @id
+  sid       String   @unique
+  data      String   @db.Text
+  expiresAt DateTime
+}
