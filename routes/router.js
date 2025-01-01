@@ -3,21 +3,21 @@ const passport = require("passport");
 const authController = require("../controllers/authController");
 const router = express.Router();
 
-router.get("/", (req, res) => {
+router.get("/", authController.isNotAuth, (req, res) => {
   res.render("index");
 });
 
-router.get("/login", (req, res) => {
+router.get("/login", authController.isNotAuth, (req, res) => {
   res.render("login");
 });
 
-router.get("/login-failure", (req, res) => {
+router.get("/login-failure", authController.isNotAuth, (req, res) => {
   res.render("login", {
     errors: [{ msg: "Wrong username or password" }],
   });
 });
 
-router.get("/signup", (req, res) => {
+router.get("/signup", authController.isNotAuth, (req, res) => {
   res.render("signup");
 });
 
@@ -31,7 +31,7 @@ router.post(
   })
 );
 
-router.get("/logout", (req, res) => {
+router.get("/logout", authController.isAuth, (req, res) => {
   req.logout((err) => {
     if (err) {
       return res.status(500).json({ message: "Error during logout." });

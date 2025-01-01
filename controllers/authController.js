@@ -10,6 +10,14 @@ function isAuth(req, res, next) {
   }
 }
 
+function isNotAuth(req, res, next) {
+  if (!req.isAuthenticated()) {
+    next();
+  } else {
+    res.redirect("/storage");
+  }
+}
+
 const registerValidation = [
   body("username")
     .isLength({ min: 3 })
@@ -62,5 +70,6 @@ registerPost = [
 
 module.exports = {
   isAuth,
+  isNotAuth,
   registerPost,
 };
