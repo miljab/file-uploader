@@ -1,0 +1,11 @@
+<div class="folder-content">
+  <% if(locals.folder) { %> <% locals.folder.children.forEach((child) => { %>
+  <a href="/storage?folder=<%= child.id %>"
+    ><button class="folder"><%= child.name %></button></a
+  >
+  <% }) %> <% locals.folder.files.forEach((file) => { %>
+  <a href="/storage?file=<%= file.id %>"
+    ><button class="file"><%= file.name %></button></a
+  >
+  <% }) %> <% } %>
+</div>

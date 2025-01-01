@@ -8,6 +8,8 @@ const { PrismaSessionStore } = require("@quixo3/prisma-session-store");
 const prisma = require("./prisma/client");
 require("dotenv").config();
 const router = require("./routes/router");
+const authController = require("./controllers/authController");
+const storageController = require("./controllers/storageController");
 
 const app = express();
 
@@ -38,6 +40,7 @@ app.use(
 require("./config/passport");
 
 app.use(passport.session());
+app.use("/storage", storageController.getRootFolder);
 
 app.use("/", router);
 

@@ -263,3 +263,45 @@ aside {
 .logout-button:hover {
   color: var(--button-hover-color);
 }
+
+main {
+  width: 100%;
+}
+
+.storage-content {
+  display: flex;
+}
+
+.folder-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.folder-content a {
+  text-decoration: none;
+}
+
+.folder,
+.file {
+  border: 1px solid var(--border-color);
+  background-color: var(--third-bg-color);
+  color: white;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+}
+
+.folder:hover,
+.file:hover {
+  color: var(--button-hover-color);
+  border: 1px solid var(--button-hover-color);
+  background-color: var(--button-hover-bg-color);
+}

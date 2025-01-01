@@ -41,6 +41,8 @@ router.get("/logout", authController.isAuth, (req, res) => {
   });
 });
 
-router.get("/storage", authController.isAuth, storageController.getRootFolder);
+router.get("/storage", authController.isAuth, storageController.getFolder);
+
+router.post("/new-folder", authController.isAuth, storageController.newFolder);
 
 module.exports = router;
