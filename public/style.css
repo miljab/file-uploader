@@ -1,3 +1,12 @@
+:root {
+  --primary-bg-color: rgb(14, 14, 22);
+  --secondary-bg-color: rgb(30, 30, 37);
+  --third-bg-color: rgb(22, 22, 31);
+  --button-hover-color: rgb(255, 255, 141);
+  --button-hover-bg-color: rgba(255, 255, 141, 0.192);
+  --border-color: rgb(73, 73, 73);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -5,7 +14,7 @@
 }
 
 body {
-  background-color: black;
+  background-color: var(--primary-bg-color);
   color: white;
   font-family: sans-serif;
   min-height: 100vh;
@@ -97,4 +106,160 @@ body {
 
 a {
   color: white;
+}
+
+.new-file-modal,
+.new-folder-modal {
+  border-radius: 10px;
+  padding: 30px;
+  width: 500px;
+  height: 240px;
+  margin: auto;
+  gap: 20px;
+  background-color: var(--secondary-bg-color);
+  color: white;
+  border: 1px solid var(--border-color);
+}
+
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+}
+
+.folder-form,
+.file-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.folder-form {
+  gap: 45px;
+}
+
+.file-form {
+  gap: 30px;
+}
+
+.close-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: white;
+  font-size: 1.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: inherit;
+  border: none;
+}
+
+.close-button:hover {
+  color: var(--button-hover-color);
+}
+
+.file-input {
+  font-size: 1rem;
+}
+
+.submit-button,
+.file-input::file-selector-button {
+  background-color: var(--third-bg-color);
+  color: white;
+  border: 1px solid var(--border-color);
+  padding: 10px;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 150px;
+  margin-left: auto;
+}
+
+.submit-button:hover,
+.file-input::file-selector-button:hover {
+  background-color: var(--button-hover-bg-color);
+  color: var(--button-hover-color);
+  border: 1px solid var(--button-hover-color);
+}
+
+.folder-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#file,
+#folder {
+  padding: 5px;
+  width: 100%;
+}
+
+header {
+  width: 100%;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+}
+
+aside {
+  height: 100vh;
+  border-right: 1px solid var(--border-color);
+  width: fit-content;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+}
+
+.action {
+  border: 1px solid var(--border-color);
+  background-color: var(--third-bg-color);
+  color: white;
+  padding: 10px;
+  width: 200px;
+  cursor: pointer;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.action:hover {
+  color: var(--button-hover-color);
+  border: 1px solid var(--button-hover-color);
+  background-color: var(--button-hover-bg-color);
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+}
+
+.logout-button {
+  background-color: inherit;
+  border: none;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  gap: 5px;
+}
+
+.logout-icon {
+  width: 30px;
+  height: 30px;
+}
+
+.logout-button:hover {
+  color: var(--button-hover-color);
 }
