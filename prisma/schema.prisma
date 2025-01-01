@@ -29,7 +29,7 @@ model Folder {
   owner     User          @relation("FolderOwner", fields: [ownerId], references: [id])
   ownerId   Int
   parent    Folder?       @relation("FolderParent", fields: [parentId], references: [id])
-  parentId  Int
+  parentId  Int?
   children  Folder[]      @relation("FolderParent")
   files     File[]
   share     ShareFolder[]

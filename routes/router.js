@@ -1,6 +1,7 @@
 const express = require("express");
 const passport = require("passport");
 const authController = require("../controllers/authController");
+const storageController = require("../controllers/storageController");
 const router = express.Router();
 
 router.get("/", authController.isNotAuth, (req, res) => {
@@ -40,8 +41,6 @@ router.get("/logout", authController.isAuth, (req, res) => {
   });
 });
 
-router.get("/storage", authController.isAuth, (req, res) => {
-  res.render("storage");
-});
+router.get("/storage", authController.isAuth, storageController.getRootFolder);
 
 module.exports = router;

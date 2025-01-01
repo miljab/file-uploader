@@ -58,6 +58,11 @@ registerPost = [
         data: {
           username,
           password: hashedPassword,
+          folders: {
+            create: {
+              name: "root",
+            },
+          },
         },
       });
       res.redirect("/");
