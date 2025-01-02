@@ -1,11 +1,34 @@
 <div class="folder-content">
   <% if(locals.folder) { %> <% locals.folder.children.forEach((child) => { %>
   <a href="/storage?folder=<%= child.id %>"
-    ><button class="folder"><%= child.name %></button></a
+    ><button class="folder">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        class="big-icon"
+      >
+        <path
+          d="M20,18H4V8H20M20,6H12L10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6Z"
+        />
+      </svg>
+      <div class="folder-name"><%= child.name %></div>
+    </button></a
   >
   <% }) %> <% locals.folder.files.forEach((file) => { %>
   <a href="/storage?file=<%= file.id %>"
-    ><button class="file"><%= file.name %></button></a
+    ><button class="file">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+      >
+        <path
+          d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
+        />
+      </svg>
+      <div class="file-name"><%= file.name %></div>
+    </button></a
   >
   <% }) %> <% } %>
 </div>
