@@ -321,3 +321,24 @@ main {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.folder-route {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--third-bg-color);
+}
+
+.folder-route-text {
+  display: flex;
+}
+
+.folder-route-text a {
+  text-decoration: none;
+  color: white;
+}
+
+.folder-route-text a:hover {
+  color: var(--button-hover-color);
+}

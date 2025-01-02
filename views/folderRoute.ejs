@@ -1,0 +1,9 @@
+<div class="folder-route">
+  <span class="folder-route-text"><a href="/storage">Home</a></span>
+  <% locals.folderRoute.forEach((folder) => { %>
+  <span class="folder-route-text"
+    >&nbsp;&gt;&nbsp;
+    <a href="/storage?folder=<%= folder.id %>"><%= folder.name %></a></span
+  >
+  <% }) %>
+</div>

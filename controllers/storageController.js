@@ -33,7 +33,20 @@ async function getFolder(req, res) {
       return res.status(403).send("Forbidden");
     }
 
-    res.render("storage", { folder: folder });
+    const folderRoute = [];
+    let currentFolder = folder;
+
+    while (currentFolder.parentId) {
+      folderRoute.unshift({ id: currentFolder.id, name: currentFolder.name });
+      currentFolder = await prisma.folder.findUnique({
+        where: { id: currentFolder.parentId },
+      });
+    }
+
+    res.render("storage", {
+      folder: folder,
+      folderRoute: folderRoute,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).send("Internal Server Error");
