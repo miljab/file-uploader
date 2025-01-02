@@ -53,7 +53,7 @@ async function newFolder(req, res) {
       },
     });
 
-    res.redirect(`/storage`);
+    res.redirect(`/storage?folder=${parentId}`);
   } catch (err) {
     console.error(err);
     res.status(500).send("Internal Server Error");
