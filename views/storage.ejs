@@ -73,7 +73,7 @@
       <div class="modal-content">
         <h2>New File</h2>
         <form
-          action="/new-file"
+          action="/new-file?folder=<%= locals.folder.id %>"
           method="POST"
           enctype="multipart/form-data"
           class="file-form"

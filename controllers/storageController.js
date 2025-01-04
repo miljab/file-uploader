@@ -53,6 +53,40 @@ async function getFolder(req, res) {
   }
 }
 
+async function getFolderRouteString(req, res) {
+  try {
+    const folderId = parseInt(req.query.folder) || parseInt(req.rootFolder?.id);
+
+    if (!folderId) {
+      return res.status(404).send("Folder not found.");
+    }
+
+    const folder = await prisma.folder.findUnique({
+      where: { id: folderId },
+      include: { files: true, children: true },
+    });
+
+    if (folder.ownerId !== req.user.id) {
+      return res.status(403).send("Forbidden");
+    }
+
+    const folderRoute = [];
+    let currentFolder = folder;
+
+    while (currentFolder.parentId) {
+      folderRoute.unshift(currentFolder.name);
+      currentFolder = await prisma.folder.findUnique({
+        where: { id: currentFolder.parentId },
+      });
+    }
+
+    return folderRoute.join("/");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+}
+
 async function newFolder(req, res) {
   try {
     const parentId = parseInt(req.query.folder) || parseInt(req.rootFolder.id);
@@ -73,4 +107,21 @@ async function newFolder(req, res) {
   }
 }
 
-module.exports = { getRootFolder, getFolder, newFolder };
+async function newFile(req, res) {
+  try {
+    const folderId = parseInt(req.query.folder) || parseInt(req.rootFolder.id);
+    const file = await prisma.file.create({
+      data: {
+        name: req.body.file,
+        folderId: folderId,
+        ownerId: req.user.id,
+      },
+    });
+    res.redirect(`/storage?folder=${folderId}`);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+}
+
+module.exports = { getRootFolder, getFolder, newFolder, getFolderRouteString };

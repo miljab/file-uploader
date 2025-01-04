@@ -3,6 +3,9 @@ const passport = require("passport");
 const authController = require("../controllers/authController");
 const storageController = require("../controllers/storageController");
 const router = express.Router();
+const supabase = require("../config/supabase");
+const multer = require("multer");
+const upload = multer({ storage: multer.memoryStorage() });
 
 router.get("/", authController.isNotAuth, (req, res) => {
   res.render("index");
@@ -44,5 +47,37 @@ router.get("/logout", authController.isAuth, (req, res) => {
 router.get("/storage", authController.isAuth, storageController.getFolder);
 
 router.post("/new-folder", authController.isAuth, storageController.newFolder);
+
+router.post(
+  "/new-file",
+  authController.isAuth,
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      const folderRoute = await storageController.getFolderRouteString(
+        req,
+        res
+      );
+
+      const filePath = `${req.user.id}/${folderRoute}/${req.file.originalname}`;
+
+      const { data, error } = await supabase.storage
+        .from("users-files")
+        .upload(filePath, req.file.buffer, {
+          contentType: req.file.mimetype,
+        });
+
+      if (error) {
+        console.error(error);
+        res.status(500).send("Internal Server Error");
+      } else {
+        res.redirect(`/storage?folder=${req.query.folder}`);
+      }
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Internal Server Error");
+    }
+  }
+);
 
 module.exports = router;
