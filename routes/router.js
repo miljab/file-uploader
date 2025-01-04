@@ -81,6 +81,42 @@ router.post(
   }
 );
 
-router.get("/download", authController.isAuth, (req, res) => {});
+router.get("/download", authController.isAuth, async (req, res) => {
+  try {
+    const file = await storageController.getFile(req, res);
+
+    const { data, error } = await supabase.storage
+      .from("users-files")
+      .createSignedUrl(file.path, 60);
+
+    if (error) {
+      console.error(error);
+      res.status(500).send("Internal Server Error");
+    } else {
+      const fileResponse = await fetch(data.signedUrl);
+
+      if (!fileResponse.ok) {
+        return res.status(500).send("Failed to fetch file content.");
+      }
+
+      const arrayBuffer = await fileResponse.arrayBuffer(); // Fetch as ArrayBuffer
+      const fileBuffer = Buffer.from(arrayBuffer); // Convert ArrayBuffer to Buffer
+
+      const filename = file.path.split("/").pop(); // Extract filename from path
+
+      res.set({
+        "Content-Type":
+          fileResponse.headers.get("Content-Type") ||
+          "application/octet-stream",
+        "Content-Disposition": `attachment; filename="${filename}"`,
+      });
+
+      res.send(fileBuffer);
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
 
 module.exports = router;

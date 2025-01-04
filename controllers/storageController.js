@@ -123,10 +123,23 @@ async function newFile(req, res, filePath) {
   }
 }
 
+async function getFile(req, res) {
+  try {
+    const fileId = parseInt(req.query.file);
+    const file = await prisma.file.findUnique({ where: { id: fileId } });
+
+    return file;
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+}
+
 module.exports = {
   getRootFolder,
   getFolder,
   newFolder,
   getFolderRouteString,
   newFile,
+  getFile,
 };
