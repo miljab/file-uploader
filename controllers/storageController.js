@@ -90,7 +90,6 @@ async function getFolderRouteString(req, res) {
 async function newFolder(req, res) {
   try {
     const parentId = parseInt(req.query.folder) || parseInt(req.rootFolder.id);
-    console.log(parentId);
 
     const folder = await prisma.folder.create({
       data: {
@@ -112,9 +111,8 @@ async function newFile(req, res) {
     const folderId = parseInt(req.query.folder) || parseInt(req.rootFolder.id);
     const file = await prisma.file.create({
       data: {
-        name: req.body.file,
+        name: req.file.originalname,
         folderId: folderId,
-        ownerId: req.user.id,
       },
     });
     res.redirect(`/storage?folder=${folderId}`);
@@ -124,4 +122,10 @@ async function newFile(req, res) {
   }
 }
 
-module.exports = { getRootFolder, getFolder, newFolder, getFolderRouteString };
+module.exports = {
+  getRootFolder,
+  getFolder,
+  newFolder,
+  getFolderRouteString,
+  newFile,
+};

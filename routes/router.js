@@ -71,7 +71,7 @@ router.post(
         console.error(error);
         res.status(500).send("Internal Server Error");
       } else {
-        res.redirect(`/storage?folder=${req.query.folder}`);
+        storageController.newFile(req, res);
       }
     } catch (err) {
       console.error(err);
