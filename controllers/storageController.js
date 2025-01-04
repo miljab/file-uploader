@@ -106,13 +106,14 @@ async function newFolder(req, res) {
   }
 }
 
-async function newFile(req, res) {
+async function newFile(req, res, filePath) {
   try {
     const folderId = parseInt(req.query.folder) || parseInt(req.rootFolder.id);
     const file = await prisma.file.create({
       data: {
         name: req.file.originalname,
         folderId: folderId,
+        path: filePath,
       },
     });
     res.redirect(`/storage?folder=${folderId}`);

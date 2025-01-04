@@ -5,6 +5,7 @@ const storageController = require("../controllers/storageController");
 const router = express.Router();
 const supabase = require("../config/supabase");
 const multer = require("multer");
+const { file } = require("../prisma/client");
 const upload = multer({ storage: multer.memoryStorage() });
 
 router.get("/", authController.isNotAuth, (req, res) => {
@@ -71,7 +72,7 @@ router.post(
         console.error(error);
         res.status(500).send("Internal Server Error");
       } else {
-        storageController.newFile(req, res);
+        storageController.newFile(req, res, filePath);
       }
     } catch (err) {
       console.error(err);
@@ -79,5 +80,7 @@ router.post(
     }
   }
 );
+
+router.get("/download", authController.isAuth, (req, res) => {});
 
 module.exports = router;

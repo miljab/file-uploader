@@ -16,7 +16,7 @@
     </button></a
   >
   <% }) %> <% locals.folder.files.forEach((file) => { %>
-  <a href="/storage?file=<%= file.id %>"
+  <a href="/download?folder=<%= locals.folder.id %>&file=<%= file.id %>"
     ><button class="file">
       <svg
         xmlns="http://www.w3.org/2000/svg"

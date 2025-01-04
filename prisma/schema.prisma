@@ -42,6 +42,7 @@ model File {
   updatedAt DateTime @updatedAt
   folder    Folder   @relation(fields: [folderId], references: [id])
   folderId  Int
+  path      String
 }
 
 model ShareFolder {
