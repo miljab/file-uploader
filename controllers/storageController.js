@@ -17,9 +17,8 @@ async function getRootFolder(req, res, next) {
   }
 }
 
-async function getFolderRouteString(folderId) {
+async function getFolderRoute(folderId) {
   try {
-    console.log(`getFolderRouteString: ${folderId}`);
     const folder = await prisma.folder.findUnique({
       where: { id: parseInt(folderId) },
       include: { files: true, children: true },
@@ -35,7 +34,7 @@ async function getFolderRouteString(folderId) {
       });
     }
 
-    return folderRoute.join("/");
+    return folderRoute;
   } catch (err) {
     console.error(err);
   }
@@ -62,7 +61,7 @@ async function getFolder(req, res) {
     let currentFolder = folder;
 
     while (currentFolder.parentId) {
-      folderRoute.unshift({ id: currentFolder.id, name: currentFolder.name });
+      folderRoute.unshift(currentFolder);
       currentFolder = await prisma.folder.findUnique({
         where: { id: currentFolder.parentId },
       });
@@ -120,9 +119,9 @@ async function getFile(req, res) {
     const fileId = parseInt(req.query.file);
     const file = await prisma.file.findUnique({ where: { id: fileId } });
 
-    const path = await getFolderRouteString(file.folderId);
+    const path = await getFolderRoute(file.folderId);
 
-    return { ...file, path };
+    return { ...file, path: path.join("/") };
   } catch (err) {
     console.error(err);
     res.status(500).send("Internal Server Error");
@@ -133,7 +132,7 @@ module.exports = {
   getRootFolder,
   getFolder,
   newFolder,
-  getFolderRouteString,
+  getFolderRoute,
   newFile,
   getFile,
 };

@@ -62,8 +62,6 @@ router.post(
         .getFolderRoute(folderId)
         .join("/");
 
-      console.log(req.file);
-
       const filePath = `${req.user.id}/${folderRoute}/${req.file.originalname}`;
 
       const { data, error } = await supabase.storage
