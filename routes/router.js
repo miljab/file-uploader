@@ -55,10 +55,14 @@ router.post(
   upload.single("file"),
   async (req, res) => {
     try {
-      const folderRoute = await storageController.getFolderRouteString(
-        req,
-        res
-      );
+      const folderId =
+        parseInt(req.query.folder) || parseInt(req.rootFolder?.id);
+
+      const folderRoute = await storageController
+        .getFolderRoute(folderId)
+        .join("/");
+
+      console.log(req.file);
 
       const filePath = `${req.user.id}/${folderRoute}/${req.file.originalname}`;
 
@@ -72,7 +76,7 @@ router.post(
         console.error(error);
         res.status(500).send("Internal Server Error");
       } else {
-        storageController.newFile(req, res, filePath);
+        storageController.newFile(req, res);
       }
     } catch (err) {
       console.error(err);
@@ -85,9 +89,11 @@ router.get("/download", authController.isAuth, async (req, res) => {
   try {
     const file = await storageController.getFile(req, res);
 
+    // todo: get file path
+
     const { data, error } = await supabase.storage
       .from("users-files")
-      .createSignedUrl(file.path, 60);
+      .createSignedUrl(`${req.user.id}/${file.path}/${file.name}`, 60);
 
     if (error) {
       console.error(error);
@@ -99,16 +105,14 @@ router.get("/download", authController.isAuth, async (req, res) => {
         return res.status(500).send("Failed to fetch file content.");
       }
 
-      const arrayBuffer = await fileResponse.arrayBuffer(); // Fetch as ArrayBuffer
-      const fileBuffer = Buffer.from(arrayBuffer); // Convert ArrayBuffer to Buffer
-
-      const filename = file.path.split("/").pop(); // Extract filename from path
+      const arrayBuffer = await fileResponse.arrayBuffer();
+      const fileBuffer = Buffer.from(arrayBuffer);
 
       res.set({
         "Content-Type":
           fileResponse.headers.get("Content-Type") ||
           "application/octet-stream",
-        "Content-Disposition": `attachment; filename="${filename}"`,
+        "Content-Disposition": `attachment; filename="${file.name}"`,
       });
 
       res.send(fileBuffer);
