@@ -119,9 +119,57 @@ async function getFile(req, res) {
     const fileId = parseInt(req.query.file);
     const file = await prisma.file.findUnique({ where: { id: fileId } });
 
+    console.log(file);
+
     const path = await getFolderRoute(file.folderId);
 
+    console.log(path);
+
     return { ...file, path: path.join("/") };
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+}
+
+async function deleteFile(req, res) {
+  try {
+    const fileId = parseInt(req.params.id);
+    const file = await prisma.file.findUnique({ where: { id: fileId } });
+
+    const folder = await prisma.folder.findUnique({
+      where: { id: file.folderId },
+    });
+
+    if (folder.ownerId !== req.user.id) {
+      return res.status(403).send("Forbidden");
+    }
+
+    const path = await getFolderRoute(file.folderId);
+
+    await prisma.file.delete({ where: { id: fileId } });
+
+    return { ...file, path: path.join("/") };
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+}
+
+async function deleteFolder(req, res) {
+  try {
+    const folderId = parseInt(req.params.id);
+    const folder = await prisma.folder.findUnique({ where: { id: folderId } });
+
+    if (folder.ownerId !== req.user.id) {
+      return res.status(403).send("Forbidden");
+    }
+
+    const path = await getFolderRoute(folderId);
+
+    await prisma.folder.delete({ where: { id: folderId } });
+
+    return { ...folder, path: path.join("/") };
   } catch (err) {
     console.error(err);
     res.status(500).send("Internal Server Error");
@@ -135,4 +183,6 @@ module.exports = {
   getFolderRoute,
   newFile,
   getFile,
+  deleteFile,
+  deleteFolder,
 };

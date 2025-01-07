@@ -87,9 +87,19 @@ router.get("/download", authController.isAuth, async (req, res) => {
   try {
     const file = await storageController.getFile(req, res);
 
+    console.log(file);
+
+    let path;
+
+    if (file.path.length === 0) {
+      path = `${req.user.id}/${file.name}`;
+    } else {
+      path = `${req.user.id}/${file.path}/${file.name}`;
+    }
+
     const { data, error } = await supabase.storage
       .from("users-files")
-      .createSignedUrl(`${req.user.id}/${file.path}/${file.name}`, 60);
+      .createSignedUrl(path, 60);
 
     if (error) {
       console.error(error);
@@ -112,6 +122,67 @@ router.get("/download", authController.isAuth, async (req, res) => {
       });
 
       res.send(fileBuffer);
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+router.post("/delete-file/:id", authController.isAuth, async (req, res) => {
+  try {
+    const file = await storageController.deleteFile(req, res);
+
+    let path;
+
+    if (file.path.length === 0) {
+      path = `${req.user.id}/${file.name}`;
+    } else {
+      path = `${req.user.id}/${file.path}/${file.name}`;
+    }
+
+    const { data, error } = await supabase.storage
+      .from("users-files")
+      .remove([path]);
+
+    if (error) {
+      console.error(error);
+      res.status(500).send("Internal Server Error");
+    } else {
+      res.redirect(`/storage?folder=${file.folderId}`);
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+router.post("/delete-folder/:id", authController.isAuth, async (req, res) => {
+  try {
+    const folder = await storageController.deleteFolder(req, res);
+
+    const { data: list, listError } = await supabase.storage
+      .from("users-files")
+      .list(`${req.user.id}/${folder.path}`);
+
+    console.log(list);
+    if (list.length === 0) {
+      return res.redirect(`/storage?folder=${folder.parentId}`);
+    }
+
+    const filesToRemove = list.map((file) => {
+      return `${req.user.id}/${folder.path}/${file.name}`;
+    });
+
+    const { data, error } = await supabase.storage
+      .from("users-files")
+      .remove(filesToRemove);
+
+    if (error) {
+      console.error(error);
+      res.status(500).send("Internal Server Error");
+    } else {
+      res.redirect(`/storage?folder=${folder.parentId}`);
     }
   } catch (err) {
     console.error(err);
