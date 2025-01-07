@@ -109,7 +109,8 @@ a {
 }
 
 .new-file-modal,
-.new-folder-modal {
+.new-folder-modal,
+.file-info-modal {
   border-radius: 10px;
   padding: 30px;
   width: 500px;
@@ -163,7 +164,8 @@ a {
 }
 
 .submit-button,
-.file-input::file-selector-button {
+.file-input::file-selector-button,
+.download-button {
   background-color: var(--third-bg-color);
   color: white;
   border: 1px solid var(--border-color);
@@ -176,7 +178,8 @@ a {
 }
 
 .submit-button:hover,
-.file-input::file-selector-button:hover {
+.file-input::file-selector-button:hover,
+.download-button:hover {
   background-color: var(--button-hover-bg-color);
   color: var(--button-hover-color);
   border: 1px solid var(--button-hover-color);
@@ -341,4 +344,19 @@ main {
 
 .folder-route-text a:hover {
   color: var(--button-hover-color);
+}
+
+.file-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.download-button {
+  margin: auto;
+}
+
+.file-info a {
+  width: fit-content;
+  margin-left: auto;
 }

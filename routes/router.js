@@ -58,11 +58,11 @@ router.post(
       const folderId =
         parseInt(req.query.folder) || parseInt(req.rootFolder?.id);
 
-      const folderRoute = await storageController
-        .getFolderRoute(folderId)
-        .join("/");
+      const folderRoute = await storageController.getFolderRoute(folderId);
 
-      const filePath = `${req.user.id}/${folderRoute}/${req.file.originalname}`;
+      const filePath = `${req.user.id}/${folderRoute.join("/")}/${
+        req.file.originalname
+      }`;
 
       const { data, error } = await supabase.storage
         .from("users-files")
@@ -86,8 +86,6 @@ router.post(
 router.get("/download", authController.isAuth, async (req, res) => {
   try {
     const file = await storageController.getFile(req, res);
-
-    // todo: get file path
 
     const { data, error } = await supabase.storage
       .from("users-files")
