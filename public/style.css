@@ -48,7 +48,7 @@ body {
 }
 
 .buttons-container button {
-  background-color: #000000;
+  background-color: var(--third-bg-color);
   color: white;
   border: 1px solid white;
   padding: 10px 20px;
@@ -60,8 +60,9 @@ body {
 }
 
 .buttons-container button:hover {
-  background-color: white;
-  color: black;
+  background-color: var(--button-hover-bg-color);
+  color: var(--button-hover-color);
+  border: 1px solid var(--button-hover-color);
 }
 
 .signup {
@@ -76,6 +77,7 @@ body {
   align-items: center;
   justify-content: space-around;
   gap: 20px;
+  background-color: var(--secondary-bg-color);
 }
 
 .signup-form,
