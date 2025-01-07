@@ -119,11 +119,7 @@ async function getFile(req, res) {
     const fileId = parseInt(req.query.file);
     const file = await prisma.file.findUnique({ where: { id: fileId } });
 
-    console.log(file);
-
     const path = await getFolderRoute(file.folderId);
-
-    console.log(path);
 
     return { ...file, path: path.join("/") };
   } catch (err) {
@@ -159,17 +155,51 @@ async function deleteFile(req, res) {
 async function deleteFolder(req, res) {
   try {
     const folderId = parseInt(req.params.id);
-    const folder = await prisma.folder.findUnique({ where: { id: folderId } });
+    const folder = await prisma.folder.findUnique({
+      where: { id: folderId },
+      include: {
+        files: true,
+        children: true,
+      },
+    });
 
     if (folder.ownerId !== req.user.id) {
       return res.status(403).send("Forbidden");
     }
 
-    const path = await getFolderRoute(folderId);
+    const getAllFiles = async (folder) => {
+      if (!folder) return [];
+
+      let files = [...folder.files];
+
+      for (const child of folder.children) {
+        const childFolder = await prisma.folder.findUnique({
+          where: { id: child.id },
+          include: {
+            files: true,
+            children: true,
+          },
+        });
+        const childFiles = await getAllFiles(childFolder);
+        files = [...files, ...childFiles];
+      }
+
+      return files;
+    };
+
+    const files = await getAllFiles(folder);
+    console.log(files);
+
+    const pathsPromises = files.map(async (file) => {
+      const folderRoute = await getFolderRoute(file.folderId);
+      return `${req.user.id}/${folderRoute.join("/")}/${file.name}`;
+    });
+
+    const paths = await Promise.all(pathsPromises);
 
     await prisma.folder.delete({ where: { id: folderId } });
 
-    return { ...folder, path: path.join("/") };
+    return paths;
   } catch (err) {
     console.error(err);
     res.status(500).send("Internal Server Error");

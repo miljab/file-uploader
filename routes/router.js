@@ -7,6 +7,7 @@ const supabase = require("../config/supabase");
 const multer = require("multer");
 const { file } = require("../prisma/client");
 const upload = multer({ storage: multer.memoryStorage() });
+const prisma = require("../prisma/client");
 
 router.get("/", authController.isNotAuth, (req, res) => {
   res.render("index");
@@ -87,8 +88,6 @@ router.get("/download", authController.isAuth, async (req, res) => {
   try {
     const file = await storageController.getFile(req, res);
 
-    console.log(file);
-
     let path;
 
     if (file.path.length === 0) {
@@ -159,24 +158,19 @@ router.post("/delete-file/:id", authController.isAuth, async (req, res) => {
 
 router.post("/delete-folder/:id", authController.isAuth, async (req, res) => {
   try {
-    const folder = await storageController.deleteFolder(req, res);
+    const folder = await prisma.folder.findUnique({
+      where: { id: parseInt(req.params.id) },
+    });
 
-    const { data: list, listError } = await supabase.storage
-      .from("users-files")
-      .list(`${req.user.id}/${folder.path}`);
+    const paths = await storageController.deleteFolder(req, res);
 
-    console.log(list);
-    if (list.length === 0) {
+    if (paths.length === 0) {
       return res.redirect(`/storage?folder=${folder.parentId}`);
     }
 
-    const filesToRemove = list.map((file) => {
-      return `${req.user.id}/${folder.path}/${file.name}`;
-    });
-
     const { data, error } = await supabase.storage
       .from("users-files")
-      .remove(filesToRemove);
+      .remove(paths);
 
     if (error) {
       console.error(error);
