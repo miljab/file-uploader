@@ -184,4 +184,57 @@ router.post("/delete-folder/:id", authController.isAuth, async (req, res) => {
   }
 });
 
+router.post("/rename-file/:id", authController.isAuth, async (req, res) => {
+  try {
+    const file = await storageController.renameFile(req, res);
+
+    console.log(file);
+
+    let path;
+
+    if (file.path.length === 0) {
+      path = `${req.user.id}`;
+    } else {
+      path = `${req.user.id}/${file.path}`;
+    }
+
+    const { data, error } = await supabase.storage
+      .from("users-files")
+      .move(`${path}/${file.oldName}`, `${path}/${file.newName}`);
+
+    if (error) {
+      console.error(error);
+      res.status(500).send("Internal Server Error");
+    } else {
+      res.redirect(`/storage?folder=${file.folderId}`);
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+router.post("/rename-folder/:id", authController.isAuth, async (req, res) => {
+  try {
+    const paths = await storageController.renameFolder(req, res);
+    console.log(paths);
+
+    for (let i = 0; i < paths.oldPaths.length; i++) {
+      const { data, error } = await supabase.storage
+        .from("users-files")
+        .move(paths.oldPaths[i], paths.newPaths[i]);
+
+      if (error) {
+        console.error(error);
+        res.status(500).send("Internal Server Error");
+      }
+    }
+
+    res.redirect(`/storage?folder=${paths.parentId}`);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 module.exports = router;

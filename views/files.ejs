@@ -13,6 +13,20 @@
         />
       </svg>
       <div class="folder-name"><%= child.name %></div>
+      <button
+        class="rename-button"
+        onClick="event.stopPropagation(); event.preventDefault(); renameFolder(<%= JSON.stringify(child) %>)"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
+          <path
+            d="M14.06,9L15,9.94L5.92,19H5V18.08L14.06,9M17.66,3C17.41,3 17.15,3.1 16.96,3.29L15.13,5.12L18.88,8.87L20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18.17,3.09 17.92,3 17.66,3M14.06,6.19L3,17.25V21H6.75L17.81,9.94L14.06,6.19Z"
+          />
+        </svg>
+      </button>
       <form action="/delete-folder/<%= child.id %>" method="POST">
         <button
           class="delete-button"
@@ -43,6 +57,20 @@
       />
     </svg>
     <div class="file-name"><%= file.name %></div>
+    <button
+      class="rename-button"
+      onClick="event.stopPropagation(); renameFile(<%= JSON.stringify(file) %>)"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+      >
+        <path
+          d="M14.06,9L15,9.94L5.92,19H5V18.08L14.06,9M17.66,3C17.41,3 17.15,3.1 16.96,3.29L15.13,5.12L18.88,8.87L20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18.17,3.09 17.92,3 17.66,3M14.06,6.19L3,17.25V21H6.75L17.81,9.94L14.06,6.19Z"
+        />
+      </svg>
+    </button>
     <form action="/delete-file/<%= file.id %>" method="POST">
       <button
         class="delete-button"
@@ -83,6 +111,23 @@
   </div>
 </dialog>
 
+<dialog class="rename-modal">
+  <div class="modal-content">
+    <h2 class="rename-modal-title"></h2>
+    <form action="" method="POST" class="rename-form">
+      <label for="newName">New name:</label>
+      <input type="text" name="newName" id="rename-input" />
+      <button class="submit-button">Rename</button>
+    </form>
+    <button
+      class="close-button"
+      onclick="document.querySelector('.rename-modal').close()"
+    >
+      &#10005;
+    </button>
+  </div>
+</dialog>
+
 <script>
   function fileInfo(file) {
     const rawDate = new Date(file.createdAt);
@@ -96,6 +141,28 @@
     size.textContent = `Size: ${file.size}`;
     date.textContent = `Uploaded at: ${rawDate.toLocaleString("pl-PL")}`;
     download.href = `/download?file=${file.id}`;
+    modal.showModal();
+  }
+
+  function renameFile(file) {
+    const modal = document.querySelector(".rename-modal");
+    const title = document.querySelector(".rename-modal-title");
+    const form = document.querySelector(".rename-form");
+    const input = document.querySelector("#rename-input");
+    title.textContent = `Rename File`;
+    input.value = file.name;
+    form.action = `/rename-file/${file.id}`;
+    modal.showModal();
+  }
+
+  function renameFolder(folder) {
+    const modal = document.querySelector(".rename-modal");
+    const title = document.querySelector(".rename-modal-title");
+    const form = document.querySelector(".rename-form");
+    const input = document.querySelector("#rename-input");
+    title.textContent = `Rename Folder`;
+    input.value = folder.name;
+    form.action = `/rename-folder/${folder.id}`;
     modal.showModal();
   }
 </script>

@@ -1,6 +1,26 @@
 const prisma = require("../prisma/client");
 const getFileSize = require("../utils/getFileSize");
 
+const getAllFiles = async (folder) => {
+  if (!folder) return [];
+
+  let files = [...folder.files];
+
+  for (const child of folder.children) {
+    const childFolder = await prisma.folder.findUnique({
+      where: { id: child.id },
+      include: {
+        files: true,
+        children: true,
+      },
+    });
+    const childFiles = await getAllFiles(childFolder);
+    files = [...files, ...childFiles];
+  }
+
+  return files;
+};
+
 async function getRootFolder(req, res, next) {
   if (req.isAuthenticated()) {
     try {
@@ -167,28 +187,27 @@ async function deleteFolder(req, res) {
       return res.status(403).send("Forbidden");
     }
 
-    const getAllFiles = async (folder) => {
-      if (!folder) return [];
+    // const getAllFiles = async (folder) => {
+    //   if (!folder) return [];
 
-      let files = [...folder.files];
+    //   let files = [...folder.files];
 
-      for (const child of folder.children) {
-        const childFolder = await prisma.folder.findUnique({
-          where: { id: child.id },
-          include: {
-            files: true,
-            children: true,
-          },
-        });
-        const childFiles = await getAllFiles(childFolder);
-        files = [...files, ...childFiles];
-      }
+    //   for (const child of folder.children) {
+    //     const childFolder = await prisma.folder.findUnique({
+    //       where: { id: child.id },
+    //       include: {
+    //         files: true,
+    //         children: true,
+    //       },
+    //     });
+    //     const childFiles = await getAllFiles(childFolder);
+    //     files = [...files, ...childFiles];
+    //   }
 
-      return files;
-    };
+    //   return files;
+    // };
 
     const files = await getAllFiles(folder);
-    console.log(files);
 
     const pathsPromises = files.map(async (file) => {
       const folderRoute = await getFolderRoute(file.folderId);
@@ -206,6 +225,85 @@ async function deleteFolder(req, res) {
   }
 }
 
+async function renameFile(req, res) {
+  try {
+    const fileId = parseInt(req.params.id);
+    const newName = req.body.newName;
+    const file = await prisma.file.findUnique({ where: { id: fileId } });
+    const oldName = file.name;
+
+    const folder = await prisma.folder.findUnique({
+      where: { id: file.folderId },
+    });
+
+    if (folder.ownerId !== req.user.id) {
+      return res.status(403).send("Forbidden");
+    }
+
+    await prisma.file.update({
+      where: { id: fileId },
+      data: { name: newName },
+    });
+
+    const path = await getFolderRoute(file.folderId);
+
+    return {
+      ...file,
+      oldName: oldName,
+      newName: newName,
+      path: path.join("/"),
+    };
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+}
+
+async function renameFolder(req, res) {
+  try {
+    const folderId = parseInt(req.params.id);
+    const newName = req.body.newName;
+    const folder = await prisma.folder.findUnique({
+      where: { id: folderId },
+      include: { files: true, children: true },
+    });
+
+    if (folder.ownerId !== req.user.id) {
+      return res.status(403).send("Forbidden");
+    }
+
+    const files = await getAllFiles(folder);
+
+    const pathsPromises = files.map(async (file) => {
+      const folderRoute = await getFolderRoute(file.folderId);
+      return `${req.user.id}/${folderRoute.join("/")}/${file.name}`;
+    });
+
+    const oldPaths = await Promise.all(pathsPromises);
+
+    await prisma.folder.update({
+      where: { id: folderId },
+      data: { name: newName },
+    });
+
+    const newPathsPromises = files.map(async (file) => {
+      const folderRoute = await getFolderRoute(file.folderId);
+      return `${req.user.id}/${folderRoute.join("/")}/${file.name}`;
+    });
+
+    const newPaths = await Promise.all(newPathsPromises);
+
+    return {
+      oldPaths: oldPaths,
+      newPaths: newPaths,
+      parentId: folder.parentId,
+    };
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+}
+
 module.exports = {
   getRootFolder,
   getFolder,
@@ -215,4 +313,6 @@ module.exports = {
   getFile,
   deleteFile,
   deleteFolder,
+  renameFile,
+  renameFolder,
 };
