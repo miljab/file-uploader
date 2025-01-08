@@ -219,14 +219,16 @@ router.post("/rename-folder/:id", authController.isAuth, async (req, res) => {
     const paths = await storageController.renameFolder(req, res);
     console.log(paths);
 
-    for (let i = 0; i < paths.oldPaths.length; i++) {
-      const { data, error } = await supabase.storage
-        .from("users-files")
-        .move(paths.oldPaths[i], paths.newPaths[i]);
+    if (paths.oldPaths.length > 0) {
+      for (let i = 0; i < paths.oldPaths.length; i++) {
+        const { data, error } = await supabase.storage
+          .from("users-files")
+          .move(paths.oldPaths[i], paths.newPaths[i]);
 
-      if (error) {
-        console.error(error);
-        res.status(500).send("Internal Server Error");
+        if (error) {
+          console.error(error);
+          res.status(500).send("Internal Server Error");
+        }
       }
     }
 
