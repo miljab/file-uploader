@@ -239,28 +239,60 @@ router.post("/rename-file/:id", authController.isAuth, async (req, res) => {
   }
 });
 
-router.post("/rename-folder/:id", authController.isAuth, async (req, res) => {
-  try {
-    const paths = await storageController.renameFolder(req, res);
+router.post(
+  "/rename-folder/:id",
+  authController.isAuth,
+  body("newName")
+    .notEmpty()
+    .custom(async (value, { req }) => {
+      const folder = await prisma.folder.findUnique({
+        where: { id: parseInt(req.params.id) },
+      });
 
-    if (paths.oldPaths.length > 0) {
-      for (let i = 0; i < paths.oldPaths.length; i++) {
-        const { data, error } = await supabase.storage
-          .from("users-files")
-          .move(paths.oldPaths[i], paths.newPaths[i]);
+      const parentId = folder.parentId;
 
-        if (error) {
-          console.error(error);
-          res.status(500).send("Internal Server Error");
-        }
+      const result = await storageController.checkIfNameIsFree(parentId, value);
+
+      if (!result) {
+        return Promise.reject();
       }
+
+      return result;
+    }),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const folder = await prisma.folder.findUnique({
+        where: { id: parseInt(req.params.id) },
+      });
+
+      return res
+        .status(400)
+        .redirect(`/storage?folder=${folder.parentId}&invalidName=true`);
     }
 
-    res.redirect(`/storage?folder=${paths.parentId}`);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Internal Server Error");
+    try {
+      const paths = await storageController.renameFolder(req, res);
+
+      if (paths.oldPaths.length > 0) {
+        for (let i = 0; i < paths.oldPaths.length; i++) {
+          const { data, error } = await supabase.storage
+            .from("users-files")
+            .move(paths.oldPaths[i], paths.newPaths[i]);
+
+          if (error) {
+            console.error(error);
+            res.status(500).send("Internal Server Error");
+          }
+        }
+      }
+
+      res.redirect(`/storage?folder=${paths.parentId}`);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Internal Server Error");
+    }
   }
-});
+);
 
 module.exports = router;
