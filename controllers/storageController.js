@@ -1,5 +1,6 @@
 const prisma = require("../prisma/client");
 const getFileSize = require("../utils/getFileSize");
+const crypto = require("crypto");
 
 const getAllFiles = async (folder) => {
   if (!folder) return [];
@@ -93,6 +94,7 @@ async function getFolder(req, res) {
       folder: folder,
       folderRoute: folderRoute,
       invalidName: invalidName,
+      shareLink: req.query.shareLink ? req.query.shareLink : "",
     });
   } catch (err) {
     console.error(err);
@@ -304,6 +306,62 @@ async function checkIfNameIsFree(parentId, name) {
   return true;
 }
 
+async function shareFolder(req, res) {
+  try {
+    const folderId = parseInt(req.params.id);
+    const folder = await prisma.folder.findUnique({
+      where: { id: folderId },
+      include: { children: true },
+    });
+
+    if (folder.ownerId !== req.user.id) {
+      return res.status(403).send("Forbidden");
+    }
+
+    const hours = parseInt(req.body.shareTime);
+    const expiresAt = new Date(Date.now() + hours * 60 * 60 * 1000);
+
+    const shareFolder = await prisma.shareFolder.create({
+      data: {
+        expiresAt: expiresAt,
+        url: crypto.randomUUID(),
+      },
+    });
+
+    await prisma.folder.update({
+      where: { id: folderId },
+      data: { shareId: shareFolder.id },
+    });
+
+    const addAllFoldersAndFiles = async (folder) => {
+      if (!folder) return [];
+
+      for (const child of folder.children) {
+        const childFolder = await prisma.folder.findUnique({
+          where: { id: child.id },
+          include: {
+            children: true,
+          },
+        });
+
+        await prisma.folder.update({
+          where: { id: childFolder.id },
+          data: { shareId: shareFolder.id },
+        });
+
+        await addAllFoldersAndFiles(childFolder);
+      }
+    };
+
+    await addAllFoldersAndFiles(folder);
+
+    return shareFolder;
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+}
+
 module.exports = {
   getRootFolder,
   getFolder,
@@ -316,4 +374,5 @@ module.exports = {
   renameFile,
   renameFolder,
   checkIfNameIsFree,
+  shareFolder,
 };

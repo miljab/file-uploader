@@ -22,17 +22,18 @@ model User {
 }
 
 model Folder {
-  id        Int           @id @default(autoincrement())
+  id        Int          @id @default(autoincrement())
   name      String
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  owner     User          @relation("FolderOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  owner     User         @relation("FolderOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId   Int
-  parent    Folder?       @relation("FolderParent", fields: [parentId], references: [id], onDelete: Cascade)
+  parent    Folder?      @relation("FolderParent", fields: [parentId], references: [id], onDelete: Cascade)
   parentId  Int?
-  children  Folder[]      @relation("FolderParent")
+  children  Folder[]     @relation("FolderParent")
   files     File[]
-  share     ShareFolder[]
+  share     ShareFolder? @relation("ShareFolder", fields: [shareId], references: [id], onDelete: Cascade)
+  shareId   Int?
 }
 
 model File {
@@ -47,8 +48,7 @@ model File {
 
 model ShareFolder {
   id        Int      @id @default(autoincrement())
-  folder    Folder   @relation(fields: [folderId], references: [id], onDelete: Cascade)
-  folderId  Int
+  folders   Folder[] @relation("ShareFolder")
   createdAt DateTime @default(now())
   expiresAt DateTime
   url       String

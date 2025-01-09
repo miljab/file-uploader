@@ -80,15 +80,11 @@ router.post(
   authController.isAuth,
   upload.single("file"),
   body("file").custom(async (value, { req }) => {
-    console.log(req.file.originalname);
     const parentId = parseInt(req.query.folder) || parseInt(req.rootFolder?.id);
-    console.log(parentId);
-
     const result = await storageController.checkIfNameIsFree(
       parentId,
       req.file.originalname
     );
-    console.log(result);
 
     if (!result) {
       return Promise.reject();
@@ -98,7 +94,6 @@ router.post(
   }),
   async (req, res) => {
     const errors = validationResult(req);
-    console.log(errors);
     if (!errors.isEmpty()) {
       return res
         .status(400)
@@ -351,5 +346,19 @@ router.post(
     }
   }
 );
+
+router.post("/share-folder/:id", authController.isAuth, async (req, res) => {
+  try {
+    const shareFolder = await storageController.shareFolder(req, res);
+    const shareLink = `${req.protocol}://${req.get("host")}/share/${
+      shareFolder.url
+    }`;
+
+    res.redirect(`/storage?folder=${req.params.id}&shareLink=${shareLink}`);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
 
 module.exports = router;

@@ -113,7 +113,8 @@ a {
 .new-file-modal,
 .new-folder-modal,
 .file-info-modal,
-.rename-modal {
+.rename-modal,
+.share-modal {
   border-radius: 10px;
   padding: 30px;
   width: 500px;
@@ -411,4 +412,15 @@ main {
   border: 1px solid white;
   z-index: 9999;
   border-radius: 8px;
+}
+
+#shareTime {
+  height: 30px;
+  width: 100px;
+  margin-right: 10px;
+}
+
+.share-link {
+  background-color: white;
+  color: black;
 }
