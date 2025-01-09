@@ -69,6 +69,10 @@
       <main><%- include('folderRoute.ejs') %> <%- include('files.ejs') %></main>
     </div>
 
+    <div class="error-message hidden">
+      <p class="error"></p>
+    </div>
+
     <dialog class="new-file-modal">
       <div class="modal-content">
         <h2>New File</h2>
@@ -78,7 +82,14 @@
           enctype="multipart/form-data"
           class="file-form"
         >
-          <input type="file" id="file" name="file" class="file-input" />
+          <input
+            type="file"
+            id="file"
+            name="file"
+            class="file-input"
+            minlength="1"
+            required
+          />
           <button class="submit-button">Upload File</button>
         </form>
         <button
@@ -100,7 +111,13 @@
         >
           <div class="folder-name-input">
             <label for="folder">Name:</label>
-            <input type="text" id="folder" name="folder" />
+            <input
+              type="text"
+              id="folder"
+              name="folder"
+              minlength="1"
+              required
+            />
           </div>
           <button class="submit-button">Create Folder</button>
         </form>
@@ -113,4 +130,20 @@
       </div>
     </dialog>
   </body>
+
+  <script>
+    function showErrorMessage(show) {
+      if (show) {
+        document.querySelector(".error-message").classList.remove("hidden");
+        document.querySelector(".error").textContent =
+          "There is already a file/folder with this name in this directory.";
+
+        setTimeout(() => {
+          document.querySelector(".error-message").classList.add("hidden");
+        }, 5000);
+      }
+    }
+
+    showErrorMessage(<%= locals.invalidName %>);
+  </script>
 </html>

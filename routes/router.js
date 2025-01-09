@@ -5,9 +5,9 @@ const storageController = require("../controllers/storageController");
 const router = express.Router();
 const supabase = require("../config/supabase");
 const multer = require("multer");
-const { file } = require("../prisma/client");
 const upload = multer({ storage: multer.memoryStorage() });
 const prisma = require("../prisma/client");
+const { body, validationResult } = require("express-validator");
 
 router.get("/", authController.isNotAuth, (req, res) => {
   res.render("index");
@@ -48,7 +48,32 @@ router.get("/logout", authController.isAuth, (req, res) => {
 
 router.get("/storage", authController.isAuth, storageController.getFolder);
 
-router.post("/new-folder", authController.isAuth, storageController.newFolder);
+router.post(
+  "/new-folder",
+  authController.isAuth,
+  body("folder")
+    .notEmpty()
+    .custom(async (value, { req }) => {
+      const parentId =
+        parseInt(req.query.folder) || parseInt(req.rootFolder?.id);
+      const result = await storageController.checkIfNameIsFree(parentId, value);
+
+      if (!result) {
+        return Promise.reject();
+      }
+
+      return result;
+    }),
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res
+        .status(400)
+        .redirect(`/storage?folder=${req.query.folder}&invalidName=true`);
+    }
+    storageController.newFolder(req, res);
+  }
+);
 
 router.post(
   "/new-file",
@@ -217,7 +242,6 @@ router.post("/rename-file/:id", authController.isAuth, async (req, res) => {
 router.post("/rename-folder/:id", authController.isAuth, async (req, res) => {
   try {
     const paths = await storageController.renameFolder(req, res);
-    console.log(paths);
 
     if (paths.oldPaths.length > 0) {
       for (let i = 0; i < paths.oldPaths.length; i++) {

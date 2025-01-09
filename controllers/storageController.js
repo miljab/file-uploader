@@ -62,6 +62,8 @@ async function getFolderRoute(folderId) {
 
 async function getFolder(req, res) {
   try {
+    const invalidName = req.query.invalidName === "true" ? true : false;
+
     const folderId = parseInt(req.query.folder) || parseInt(req.rootFolder?.id);
 
     if (!folderId) {
@@ -90,6 +92,7 @@ async function getFolder(req, res) {
     res.render("storage", {
       folder: folder,
       folderRoute: folderRoute,
+      invalidName: invalidName,
     });
   } catch (err) {
     console.error(err);
@@ -186,26 +189,6 @@ async function deleteFolder(req, res) {
     if (folder.ownerId !== req.user.id) {
       return res.status(403).send("Forbidden");
     }
-
-    // const getAllFiles = async (folder) => {
-    //   if (!folder) return [];
-
-    //   let files = [...folder.files];
-
-    //   for (const child of folder.children) {
-    //     const childFolder = await prisma.folder.findUnique({
-    //       where: { id: child.id },
-    //       include: {
-    //         files: true,
-    //         children: true,
-    //       },
-    //     });
-    //     const childFiles = await getAllFiles(childFolder);
-    //     files = [...files, ...childFiles];
-    //   }
-
-    //   return files;
-    // };
 
     const files = await getAllFiles(folder);
 
@@ -304,6 +287,23 @@ async function renameFolder(req, res) {
   }
 }
 
+async function checkIfNameIsFree(parentId, name) {
+  const folder = await prisma.folder.findUnique({
+    where: { id: parentId },
+    include: { files: true, children: true },
+  });
+
+  if (folder.files.some((file) => file.name === name)) {
+    return false;
+  }
+
+  if (folder.children.some((child) => child.name === name)) {
+    return false;
+  }
+
+  return true;
+}
+
 module.exports = {
   getRootFolder,
   getFolder,
@@ -315,4 +315,5 @@ module.exports = {
   deleteFolder,
   renameFile,
   renameFolder,
+  checkIfNameIsFree,
 };

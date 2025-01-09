@@ -397,3 +397,18 @@ main {
   flex-direction: column;
   gap: 10px;
 }
+
+.hidden {
+  display: none;
+}
+
+.error-message {
+  position: fixed;
+  top: 100px;
+  right: 25px;
+  background-color: var(--secondary-bg-color);
+  padding: 30px 20px;
+  border: 1px solid white;
+  z-index: 9999;
+  border-radius: 8px;
+}
