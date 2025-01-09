@@ -79,7 +79,32 @@ router.post(
   "/new-file",
   authController.isAuth,
   upload.single("file"),
+  body("file").custom(async (value, { req }) => {
+    console.log(req.file.originalname);
+    const parentId = parseInt(req.query.folder) || parseInt(req.rootFolder?.id);
+    console.log(parentId);
+
+    const result = await storageController.checkIfNameIsFree(
+      parentId,
+      req.file.originalname
+    );
+    console.log(result);
+
+    if (!result) {
+      return Promise.reject();
+    }
+
+    return result;
+  }),
   async (req, res) => {
+    const errors = validationResult(req);
+    console.log(errors);
+    if (!errors.isEmpty()) {
+      return res
+        .status(400)
+        .redirect(`/storage?folder=${req.query.folder}&invalidName=true`);
+    }
+
     try {
       const folderId =
         parseInt(req.query.folder) || parseInt(req.rootFolder?.id);
@@ -209,35 +234,67 @@ router.post("/delete-folder/:id", authController.isAuth, async (req, res) => {
   }
 });
 
-router.post("/rename-file/:id", authController.isAuth, async (req, res) => {
-  try {
-    const file = await storageController.renameFile(req, res);
+router.post(
+  "/rename-file/:id",
+  authController.isAuth,
+  body("newName")
+    .notEmpty()
+    .custom(async (value, { req }) => {
+      const file = await prisma.file.findUnique({
+        where: { id: parseInt(req.params.id) },
+      });
 
-    console.log(file);
+      const result = await storageController.checkIfNameIsFree(
+        file.folderId,
+        value
+      );
 
-    let path;
+      if (!result) {
+        return Promise.reject();
+      }
 
-    if (file.path.length === 0) {
-      path = `${req.user.id}`;
-    } else {
-      path = `${req.user.id}/${file.path}`;
+      return result;
+    }),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const file = await prisma.file.findUnique({
+        where: { id: parseInt(req.params.id) },
+      });
+
+      return res
+        .status(400)
+        .redirect(`/storage?folder=${file.folderId}&invalidName=true`);
     }
+    try {
+      const file = await storageController.renameFile(req, res);
 
-    const { data, error } = await supabase.storage
-      .from("users-files")
-      .move(`${path}/${file.oldName}`, `${path}/${file.newName}`);
+      console.log(file);
 
-    if (error) {
-      console.error(error);
+      let path;
+
+      if (file.path.length === 0) {
+        path = `${req.user.id}`;
+      } else {
+        path = `${req.user.id}/${file.path}`;
+      }
+
+      const { data, error } = await supabase.storage
+        .from("users-files")
+        .move(`${path}/${file.oldName}`, `${path}/${file.newName}`);
+
+      if (error) {
+        console.error(error);
+        res.status(500).send("Internal Server Error");
+      } else {
+        res.redirect(`/storage?folder=${file.folderId}`);
+      }
+    } catch (err) {
+      console.error(err);
       res.status(500).send("Internal Server Error");
-    } else {
-      res.redirect(`/storage?folder=${file.folderId}`);
     }
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Internal Server Error");
   }
-});
+);
 
 router.post(
   "/rename-folder/:id",
