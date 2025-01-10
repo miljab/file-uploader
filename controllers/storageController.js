@@ -324,6 +324,7 @@ async function shareFolder(req, res) {
     const shareFolder = await prisma.shareFolder.create({
       data: {
         expiresAt: expiresAt,
+        headFolderId: folderId,
         url: crypto.randomUUID(),
       },
     });
@@ -362,6 +363,64 @@ async function shareFolder(req, res) {
   }
 }
 
+async function getSharedFolder(req, res) {
+  try {
+    const url = req.params.url;
+    const shareFolder = await prisma.shareFolder.findFirst({
+      where: { url: url },
+    });
+
+    if (!shareFolder) {
+      return res.status(404).send("Not Found");
+    }
+
+    if (shareFolder.expiresAt < new Date()) {
+      return res.status(404).send("Not Found");
+    }
+
+    const folderId = parseInt(req.query.folder) || shareFolder.headFolderId;
+
+    const folder = await prisma.folder.findUnique({
+      where: { id: folderId },
+      include: { files: true, children: true, shares: true },
+    });
+
+    if (!folder) {
+      return res.status(404).send("Not Found");
+    }
+
+    if (!folder.shares.some((share) => share.id === shareFolder.id)) {
+      return res.status(404).send("Not Found");
+    }
+
+    const folderRoute = [];
+    let currentFolder = folder;
+
+    while (currentFolder.id !== shareFolder.headFolderId) {
+      folderRoute.unshift(currentFolder);
+      currentFolder = await prisma.folder.findUnique({
+        where: { id: currentFolder.parentId },
+      });
+    }
+
+    const headFolder = await prisma.folder.findUnique({
+      where: { id: shareFolder.headFolderId },
+    });
+
+    const headFolderName = headFolder.parentId ? headFolder.name : "Home";
+
+    res.render("shared", {
+      folder: folder,
+      folderRoute: folderRoute,
+      shareUrl: url,
+      headFolderName: headFolderName,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+}
+
 module.exports = {
   getRootFolder,
   getFolder,
@@ -375,4 +434,5 @@ module.exports = {
   renameFolder,
   checkIfNameIsFree,
   shareFolder,
+  getSharedFolder,
 };

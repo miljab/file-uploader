@@ -1,0 +1,70 @@
+<div class="folder-content">
+  <% if(locals.folder) { %> <% locals.folder.children.forEach((child) => { %>
+  <a href="/share/<%= locals.shareUrl %>?folder=<%= child.id %>"
+    ><div class="folder">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        class="big-icon"
+      >
+        <path
+          d="M20,18H4V8H20M20,6H12L10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6Z"
+        />
+      </svg>
+      <div class="folder-name"><%= child.name %></div>
+    </div></a
+  >
+  <% }) %> <% locals.folder.files.forEach((file) => { %>
+  <div class="file" onclick="fileInfo(<%= JSON.stringify(file) %>)">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      class="big-icon"
+    >
+      <path
+        d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
+      />
+    </svg>
+    <div class="file-name"><%= file.name %></div>
+  </div>
+  <% })} %>
+</div>
+
+<dialog class="file-info-modal">
+  <div class="modal-content">
+    <h2>File Info</h2>
+    <div class="file-info">
+      <span class="file-info-name"></span>
+      <span class="file-info-size"></span>
+      <span class="file-info-date"></span>
+      <a href="" class="file-info-download"
+        ><button class="download-button">Download</button></a
+      >
+    </div>
+    <button
+      class="close-button"
+      onclick="document.querySelector('.file-info-modal').close()"
+    >
+      &#10005;
+    </button>
+  </div>
+</dialog>
+
+<script>
+  function fileInfo(file) {
+    const rawDate = new Date(file.createdAt);
+
+    const modal = document.querySelector(".file-info-modal");
+    const name = document.querySelector(".file-info-name");
+    const size = document.querySelector(".file-info-size");
+    const date = document.querySelector(".file-info-date");
+    const download = document.querySelector(".file-info-download");
+    name.textContent = `File name: ${file.name}`;
+    size.textContent = `Size: ${file.size}`;
+    date.textContent = `Uploaded at: ${rawDate.toLocaleString("pl-PL")}`;
+    download.href = `/download?file=${file.id}`;
+    modal.showModal();
+  }
+</script>

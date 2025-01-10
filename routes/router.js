@@ -361,4 +361,8 @@ router.post("/share-folder/:id", authController.isAuth, async (req, res) => {
   }
 });
 
+router.get("/share/:url", async (req, res) => {
+  await storageController.getSharedFolder(req, res);
+});
+
 module.exports = router;
