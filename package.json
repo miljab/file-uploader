@@ -26,6 +26,6 @@
     "supabase": "^2.2.1"
   },
   "devDependencies": {
-    "prisma": "^6.1.0"
+    "prisma": "^6.2.1"
   }
 }

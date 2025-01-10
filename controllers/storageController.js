@@ -330,7 +330,7 @@ async function shareFolder(req, res) {
 
     await prisma.folder.update({
       where: { id: folderId },
-      data: { shareId: shareFolder.id },
+      data: { shares: { connect: { id: shareFolder.id } } },
     });
 
     const addAllFoldersAndFiles = async (folder) => {
@@ -346,7 +346,7 @@ async function shareFolder(req, res) {
 
         await prisma.folder.update({
           where: { id: childFolder.id },
-          data: { shareId: shareFolder.id },
+          data: { shares: { connect: { id: shareFolder.id } } },
         });
 
         await addAllFoldersAndFiles(childFolder);
