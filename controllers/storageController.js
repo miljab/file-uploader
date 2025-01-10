@@ -375,7 +375,7 @@ async function getSharedFolder(req, res) {
     }
 
     if (shareFolder.expiresAt < new Date()) {
-      return res.status(404).send("Not Found");
+      return res.status(410).send("Link Expired");
     }
 
     const folderId = parseInt(req.query.folder) || shareFolder.headFolderId;
@@ -421,6 +421,46 @@ async function getSharedFolder(req, res) {
   }
 }
 
+async function getSharedFile(req, res) {
+  try {
+    const url = req.params.url;
+    const shareFolder = await prisma.shareFolder.findFirst({
+      where: { url: url },
+    });
+
+    if (!shareFolder) {
+      return res.status(404).send("Not Found");
+    }
+
+    if (shareFolder.expiresAt < new Date()) {
+      return res.status(410).send("Link Expired");
+    }
+
+    const fileId = parseInt(req.query.file);
+    const file = await prisma.file.findUnique({ where: { id: fileId } });
+
+    if (!file) {
+      return res.status(404).send("Not Found");
+    }
+
+    const parentFolder = await prisma.folder.findUnique({
+      where: { id: file.folderId },
+      include: { shares: true },
+    });
+
+    if (!parentFolder.shares.some((share) => share.id === shareFolder.id)) {
+      return res.status(404).send("Not Found");
+    }
+
+    const filePath = await getFolderRoute(file.folderId);
+
+    return { ...file, path: filePath.join("/"), ownerId: parentFolder.ownerId };
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+}
+
 module.exports = {
   getRootFolder,
   getFolder,
@@ -435,4 +475,5 @@ module.exports = {
   checkIfNameIsFree,
   shareFolder,
   getSharedFolder,
+  getSharedFile,
 };

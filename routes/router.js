@@ -264,8 +264,6 @@ router.post(
     try {
       const file = await storageController.renameFile(req, res);
 
-      console.log(file);
-
       let path;
 
       if (file.path.length === 0) {
@@ -363,6 +361,50 @@ router.post("/share-folder/:id", authController.isAuth, async (req, res) => {
 
 router.get("/share/:url", async (req, res) => {
   await storageController.getSharedFolder(req, res);
+});
+
+router.get("/share/:url/download", async (req, res) => {
+  try {
+    const file = await storageController.getSharedFile(req, res);
+
+    let path;
+
+    if (file.path.length === 0) {
+      path = `${file.ownerId}/${file.name}`;
+    } else {
+      path = `${file.ownerId}/${file.path}/${file.name}`;
+    }
+
+    const { data, error } = await supabase.storage
+      .from("users-files")
+      .createSignedUrl(path, 60);
+
+    if (error) {
+      console.error(error);
+      res.status(500).send("Internal Server Error");
+    } else {
+      const fileResponse = await fetch(data.signedUrl);
+
+      if (!fileResponse.ok) {
+        return res.status(500).send("Failed to fetch file content.");
+      }
+
+      const arrayBuffer = await fileResponse.arrayBuffer();
+      const fileBuffer = Buffer.from(arrayBuffer);
+
+      res.set({
+        "Content-Type":
+          fileResponse.headers.get("Content-Type") ||
+          "application/octet-stream",
+        "Content-Disposition": `attachment; filename="${file.name}"`,
+      });
+
+      res.send(fileBuffer);
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
 module.exports = router;

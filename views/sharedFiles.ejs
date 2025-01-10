@@ -64,7 +64,7 @@
     name.textContent = `File name: ${file.name}`;
     size.textContent = `Size: ${file.size}`;
     date.textContent = `Uploaded at: ${rawDate.toLocaleString("pl-PL")}`;
-    download.href = `/download?file=${file.id}`;
+    download.href = `/share/<%= locals.shareUrl %>/download?file=${file.id}`;
     modal.showModal();
   }
 </script>
